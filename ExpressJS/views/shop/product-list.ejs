@@ -1,9 +1,9 @@
-<%- include('includes/head.ejs') %>
+<%- include('../includes/head.ejs') %>
 <link rel="stylesheet" href="/css/product.css" />
 </head>
 
   <body>
-    <%- include('includes/navigation.ejs') %>
+    <%- include('../includes/navigation.ejs') %>
 
     <main>
       <% if (prods.length > 0) { %>
@@ -15,16 +15,18 @@
           </header>
           <div class="card__image">
             <img
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Livre_Trion_consultable_sur_place_-_Fonds_ancien_%28bibliothèque_municipale_de_Lyon%29.jpg/800px-Livre_Trion_consultable_sur_place_-_Fonds_ancien_%28bibliothèque_municipale_de_Lyon%29.jpg"
-              alt="A Book"
+              src="<%= product.imgUrl %><"
+              alt="<%= product.title %>"
             />
           </div>
           <div class="card__content">
-            <h2 class="product__price">19.99$</h2>
-            <p class="product__description">A very interesting book</p>
+            <h2 class="product__price">€<%= product.price %></h2>
+            <p class="product__description"><%= product.description %></p>
           </div>
           <div class="card__actions">
-            <button class="btn">Add To Cart</button>
+            <form action="/add-to-cart" method="POST">
+              <button class="btn">Add To Cart</button>
+            </form>
           </div>
         </article>
         <% } %>
@@ -34,4 +36,4 @@
       <% } %>
     </main>
  
-    <%- include('includes/end.ejs') %>
+    <%- include('../includes/end.ejs') %>
