@@ -8,7 +8,8 @@ const shopRoutes = require("./routes/shop");
 const express = require("express");
 const bodyParser = require("body-parser");
 
-const errorController = require('./controllers/404')
+const errorController = require("./controllers/404");
+const db = require("./util/database");
 
 const app = express();
 
