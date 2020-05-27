@@ -13,16 +13,16 @@ exports.postAddProduct = (req, res, next) => {
   const imgUrl = req.body.imgUrl;
   const price = req.body.price;
   const description = req.body.description;
-  // Permet de créer un nouvel objet associé
-  req.user
-    .createProduct({
-      title: title,
-      price: price,
-      imgUrl: imgUrl,
-      description: description,
-      // version manuelle de création d'un utilisateur
-      // userId: req.user.id,
-    })
+  const product = new Product(
+    title,
+    price,
+    description,
+    imgUrl,
+    null,
+    req.user._id
+  );
+  product
+    .save()
     .then((result) => {
       // console.log(result);
       console.log("Created Product");
@@ -40,11 +40,10 @@ exports.getEditProduct = (req, res, next) => {
     return res.redirect("/");
   }
   const prodId = req.params.productId;
-  req.user
-    .getProducts({ where: { id: prodId } })
+  Product.findById(prodId)
+    // .getProducts({ where: { id: prodId } })
     // Product.findByPk(prodId)
-    .then((products) => {
-      const product = products[0];
+    .then((product) => {
       if (!product) {
         return res.redirect("/");
       }
@@ -66,17 +65,17 @@ exports.postEditProduct = (req, res, next) => {
   const updatedPrice = req.body.price;
   const updatedImgUrl = req.body.imgUrl;
   const updatedDesc = req.body.description;
-  Product.findByPk(prodId)
-    .then((product) => {
-      // enregistrera les modif localement uniquement
-      product.title = updatedTitle;
-      product.price = updatedPrice;
-      product.description = updatedDesc;
-      product.imgUrl = updatedImgUrl;
 
-      // méthode pour enregistrer en BDD
-      return product.save();
-    })
+  const product = new Product(
+    updatedTitle,
+    updatedPrice,
+    updatedDesc,
+    updatedImgUrl,
+    prodId
+  );
+
+  product
+    .save()
     .then((result) => {
       console.log("UPDATED PRODUCT !!");
       res.redirect("/admin/products");
@@ -87,8 +86,7 @@ exports.postEditProduct = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-  req.user
-    .getProducts()
+  Product.fetchAll()
     .then((products) => {
       res.render("admin/products", {
         prods: products,
@@ -101,11 +99,8 @@ exports.getProducts = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.findByPk(prodId)
-    .then((product) => {
-      return product.destroy();
-    })
-    .then((result) => {
+  Product.deleteById(prodId)
+    .then(() => {
       console.log("DESTROYED PRODUCT");
       res.redirect("/admin/products");
     })
