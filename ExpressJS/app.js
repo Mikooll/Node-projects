@@ -1,8 +1,5 @@
 const path = require("path");
 
-const adminRoutes = require("./routes/admin");
-const shopRoutes = require("./routes/shop");
-
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
@@ -15,12 +12,15 @@ const app = express();
 app.set("view engine", "ejs");
 app.set("views", "views");
 
+const adminRoutes = require("./routes/admin");
+const shopRoutes = require("./routes/shop");
+
 app.use(bodyParser.urlencoded({ extended: false }));
 // ajout du fichier css en donnant accès au dossier 'public'
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use((req, res, next) => {
-  User.findById("")
+  User.findById("5ecfcbd3662426889bed1729")
     .then((user) => {
       req.user = user;
       next();
