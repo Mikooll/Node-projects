@@ -11,6 +11,8 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
+  resetToken: String,
+  resetTokenExpiration: Date,
   cart: {
     items: [
       {
@@ -62,6 +64,18 @@ userSchema.methods.removeFromCart = function (productId) {
 userSchema.methods.clearCart = function () {
   this.cart = { items: [] };
   return this.save();
+};
+
+userSchema.methods.hasRole = function (role) {
+  for (var i = 0; i < this.roles.length; i++) {
+    if (this.roles[i] === role) {
+      // if the role matches the 'role' i am
+      // looking for return true
+      return true;
+    }
+  }
+  // if the role does not match return false
+  return false;
 };
 
 module.exports = mongoose.model('User', userSchema);
