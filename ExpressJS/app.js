@@ -57,6 +57,8 @@ app.use(
 
 // ajout du fichier css en donnant accès au dossier 'public'
 app.use(express.static(path.join(__dirname, 'public')));
+//  accès au dossier 'images'
+app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use(
   session({
     secret: 'my secret',

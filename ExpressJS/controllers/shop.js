@@ -1,3 +1,8 @@
+const fs = require('fs');
+const path = require('path');
+
+const PDFDocument = require('pdfkit');
+
 const Product = require('../models/product');
 const Order = require('../models/order');
 
@@ -141,4 +146,83 @@ exports.getOrders = (req, res, next) => {
       error.httpStatusCode = 500;
       return next(error);
     });
+};
+
+exports.getInvoice = (req, res, next) => {
+  const orderId = req.params.orderId;
+  Order.findById(orderId)
+    .then((order) => {
+      if (!order) {
+        return next(new Error('No order found'));
+      }
+      if (order.user.userId.toString() !== req.user._id.toString()) {
+        return next(new Error('Unauthorized'));
+      }
+      const invoiceName = 'Invoice-' + orderId + '.pdf';
+      const invoicePath = path.join('data', 'invoices', invoiceName);
+
+      const pdfDoc = new PDFDocument();
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        'inline; filename="' + invoiceName + '"'
+      );
+      // création du pdf et enregistrement sur le serveur
+      pdfDoc.pipe(fs.createWriteStream(invoicePath));
+      // renvoie au client
+      pdfDoc.pipe(res);
+
+      // permet d'ajouter une ligne de texte dans le pdf
+      // exemple pour afficher Hello World : pdfDoc.text('Hello World');
+      pdfDoc.fontSize(26).text('Invoice', {
+        underline: true,
+      });
+      pdfDoc.text('-----------------------');
+      let totalPrice = 0;
+      order.products.forEach((prod) => {
+        totalPrice += prod.quantity * prod.product.price;
+        pdfDoc
+          .fontSize(14)
+          .text(
+            prod.product.title +
+              ' - ' +
+              ' x' +
+              prod.quantity +
+              ' = ' +
+              prod.product.price * prod.quantity +
+              '€'
+          );
+      });
+      pdfDoc.text('------')
+      pdfDoc.fontSize(20).text('Total price: ' + totalPrice + '€');
+
+      // indique que j'ai terminé et ferme donc les streams
+      pdfDoc.end();
+
+      /* Utile pour 
+      les petits fichiers */
+      // fs.readFile(invoicePath, (err, data) => {
+      //   if (err) {
+      //     return next(err);
+      //   }
+      //   // permet de lire le document
+      //   res.setHeader('Content-Type', 'application/pdf');
+      //   res.setHeader(
+      //     'Content-Disposition',
+      //     'inline; filename="' + invoiceName + '"'
+      //   );
+      //   // permet de dl un fichier
+      //   res.send(data);
+      // });
+
+      /* cas de gros fichiers */
+      const file = fs.createReadStream(invoicePath);
+      // res.setHeader('Content-Type', 'application/pdf');
+      // res.setHeader(
+      //   'Content-Disposition',
+      //   'inline; filename="' + invoiceName + '"'
+      // );
+      file.pipe(res);
+    })
+    .catch((err) => next(err));
 };
