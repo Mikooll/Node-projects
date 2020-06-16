@@ -62,8 +62,8 @@ exports.postAddProduct = (req, res, next) => {
   const product = new Product({
     title: title,
     price: price,
-    imgUrl: imgUrl,
     description: description,
+    imgUrl: imgUrl,
     userId: req.user,
   });
   product
@@ -160,11 +160,12 @@ exports.postEditProduct = (req, res, next) => {
       }
       product.title = updatedTitle;
       product.price = updatedPrice;
+      product.description = updatedDesc;
+
       if (image) {
         fileHelper.deleteFile(product.imgUrl);
         product.imgUrl = image.path;
       }
-      product.description = updatedDesc;
       return product.save().then((result) => {
         console.log('UPDATED PRODUCT !!');
         res.redirect('/admin/products');
@@ -202,7 +203,7 @@ exports.postDeleteProduct = (req, res, next) => {
         return next(new Error('Product not found.'));
       }
       fileHelper.deleteFile(product.imgUrl);
-      Product.deleteOne({ _id: prodId, userId: req.user._id });
+      return Product.deleteOne({ _id: prodId, userId: req.user._id });
     })
     .then(() => {
       console.log('DESTROYED PRODUCT');

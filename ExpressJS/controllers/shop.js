@@ -6,14 +6,38 @@ const PDFDocument = require('pdfkit');
 const Product = require('../models/product');
 const Order = require('../models/order');
 
+const ITEMS_PER_PAGE = 1;
+
 exports.getProducts = (req, res, next) => {
+  // accéder au queryparam de la page
+  const page = +req.query.page || 1;
+  let totalItems;
+
+  // récupérer un nb de produits
   Product.find()
+    .countDocuments()
+    .then((nbProducts) => {
+      totalItems = nbProducts;
+      return (
+        Product.find()
+          // ignorer le nombre de résultat => skip()
+          .skip((page - 1) * ITEMS_PER_PAGE)
+          // limit() permet de limiter le nombre d'éléments que l'on récupère
+          .limit(ITEMS_PER_PAGE)
+      );
+    })
     .then((products) => {
-      console.log(products);
       res.render('shop/product-list', {
         prods: products,
-        pageTitle: 'All Products',
+        pageTitle: 'Products',
         path: '/products',
+        // gestion de pages
+        currentPage: page,
+        hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+        hasPreviousPage: page > 1,
+        nextPage: page + 1,
+        previousPage: page - 1,
+        lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
       });
     })
     .catch((err) => {
@@ -24,12 +48,35 @@ exports.getProducts = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
+  // accéder au queryparam de la page
+  const page = +req.query.page || 1;
+  let totalItems;
+
+  // récupérer un nb de produits
   Product.find()
+    .countDocuments()
+    .then((nbProducts) => {
+      totalItems = nbProducts;
+      return (
+        Product.find()
+          // ignorer le nombre de résultat => skip()
+          .skip((page - 1) * ITEMS_PER_PAGE)
+          // limit() permet de limiter le nombre d'éléments que l'on récupère
+          .limit(ITEMS_PER_PAGE)
+      );
+    })
     .then((products) => {
       res.render('shop/index', {
         prods: products,
         pageTitle: 'Shop',
         path: '/',
+        // gestion de pages
+        currentPage: page,
+        hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+        hasPreviousPage: page > 1,
+        nextPage: page + 1,
+        previousPage: page - 1,
+        lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
       });
     })
     .catch((err) => {
@@ -193,7 +240,7 @@ exports.getInvoice = (req, res, next) => {
               '€'
           );
       });
-      pdfDoc.text('------')
+      pdfDoc.text('------');
       pdfDoc.fontSize(20).text('Total price: ' + totalPrice + '€');
 
       // indique que j'ai terminé et ferme donc les streams
